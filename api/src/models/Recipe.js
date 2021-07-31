@@ -30,6 +30,11 @@ module.exports = (sequelize) => {
       type: DataTypes.TEXT,
       allowNull: true,
     },
-  });
+    image: {
+      type: DataTypes.TEXT,
+      defaultValue: "https://imgur.com/a/DlOTyFm",
+      allowNull: true
+    }
+  }, {timestamps: false});
   return Recipe;
 };
