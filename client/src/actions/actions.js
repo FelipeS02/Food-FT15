@@ -1,0 +1,5 @@
+export const GET_RECIPES = 'GET_RECIPES'
+export const GET_DIETS = 'GET_DIETS'
+export const RECIPES_BY_NAME = 'RECIPES_BY_NAME'
+export const RECIPE_DETAIL = 'RECIPE_DETAIL'
+export const SORT = 'SORT'

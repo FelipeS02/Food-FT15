@@ -1,0 +1,10 @@
+body {
+  background-image: url("../img/background-image.jpg");
+  background-size: cover;
+}
+
+.homeLogo {
+  height: 200px;
+  margin: auto;
+  display: block;
+}

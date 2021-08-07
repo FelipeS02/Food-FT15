@@ -7,6 +7,7 @@ const { Diet, Recipe } = require("../db");
 const axios = require("axios");
 const { API_KEY } = process.env;
 const { validate } = require("uuid");
+const { Op } = require("sequelize");
 
 // Configurar los routers
 // Ejemplo: router.use('/auth', authRouter);
@@ -16,15 +17,17 @@ const { validate } = require("uuid");
 router.get("/recipes", async (req, res) => {
   try {
     const apiResponse = await axios.get(
-      `https://api.spoonacular.com/recipes/complexSearch?apiKey=${API_KEY}&addRecipeInformation=true&number=100`
+      `https://api.spoonacular.com/recipes/complexSearch?apiKey=${API_KEY}&addRecipeInformation=true&number=10`
     );
-    const dbRecipes = await Recipe.findAll();
     if (!req.query.name) {
+      const dbRecipes = await Recipe.findAll({include: { all: true }});
       const apiExtractedInfo = apiResponse?.data?.results?.length
         ? apiResponse.data.results.map((r) => {
-            const { title, image, diets, dishTypes } = r;
+            const { title, image, diets, dishTypes, id, spoonacularScore } = r;
             return {
+              id,
               name: title,
+              score: spoonacularScore,
               diets,
               dishTypes,
               image,
@@ -33,10 +36,13 @@ router.get("/recipes", async (req, res) => {
         : [];
       const dbExtractedInfo = dbRecipes.length
         ? dbRecipes.map((r) => {
-            const { name, diet, image } = r;
+            const { name, image, id, score, diets } = r;
+            const arrayDiets = diets.map((e) => e.name)
             return {
+              id,
               name,
-              diet: diet.split(","),
+              score,
+              diets: arrayDiets,
               image,
             };
           })
@@ -45,44 +51,50 @@ router.get("/recipes", async (req, res) => {
         res.status(400).json({ messageError: "Error de servidor" });
         return;
       } else {
-        res.json({ recipes: [...apiExtractedInfo.concat(dbExtractedInfo)] });
+        res.json({ recipes: [...dbExtractedInfo.concat(apiExtractedInfo)] });
         return;
       }
     } else {
       const { name } = req.query;
-      const apiExtractByName = apiResponse.length
-        ? apiResponse
+      const apiExtractByName = apiResponse.data?.results?.length
+        ? apiResponse.data.results
             .filter((r) => r.title.toLowerCase().includes(name))
             .map((e) => {
-              const { title, image, diets } = e;
+              const { title, image, diets, id } = e;
               return {
+                id,
                 name: title,
                 diets,
                 image,
               };
             })
         : [];
-      const dbExtractByName = dbRecipes.length
-        ? dbRecipes
-            .filter((r) => r.name.toLowerCase().includes(name))
-            .map((e) => {
-              const { name, image, diet } = e;
-              return {
-                name,
-                diet,
-                image,
-              };
-            })
+      const dbDietsByName = await Diet.findAll({
+        include: [{
+          where: { name: { [Op.iLike]: "%" + name + "%" } },
+          model: Recipe,
+        }]
+      });
+      const diets = dbDietsByName.map((d) => d.name)
+      const dbRecipesByName = await Recipe.findAll({ where: { name: { [Op.iLike]: "%" + name + "%" } } })
+      const dbExtractByName = dbRecipesByName.length
+        ? dbRecipesByName.map((e) => {
+            const { name, image, id } = e;
+            return {
+              id,
+              name,
+              diets,
+              image,
+            };
+          })
         : [];
       if (apiExtractByName === [] && dbExtractByName === []) {
-          res.status(400).json({ messageError: "Nombre inexistente" });
-          return
+        res.status(400).json({ messageError: "Nombre inexistente" });
+        return;
       } else {
-        res
-          .status(200)
-          .json({
-            recipes: [...apiExtractByName.concat([...dbExtractByName])],
-          });
+        res.status(200).json({
+          recipes: [...apiExtractByName.concat([...dbExtractByName])],
+        });
         return;
       }
     }
@@ -107,14 +119,14 @@ const setDiets = async (diets, recipe) => {
 };
 
 const changeData = (data) => {
-  let steps = {};
-  data["analyzedInstructions"] &&
-    data["analyzedInstructions"][0]["steps"]?.forEach(({ number, step }) => {
-      steps = {
-        ...steps,
-        [number]: step.replace("&amp;", "").replace("&amp;", "").replace("&amp;", ""),
-      };
+  let steps = [];
+  if (data[0].steps.length > 0) {
+    data[0].steps.forEach(({ number, step }) => {
+      steps.push ({[number]: step.toString()});
     });
+  } else {
+    steps = [{ noInstructions: "No existen instrucciones para esta receta" }];
+  }
   return steps;
 };
 
@@ -122,49 +134,56 @@ router.get("/recipes/:idReceta", async (req, res) => {
   try {
     const { idReceta } = req.params;
     if (validate(idReceta)) {
-        const dbFind = await Recipe.findOne({ where: { id: idReceta }, include: { all: true }})
-        if (dbFind) {
-            const { name, resume, score, healthScore, instructions, image, diets } = dbFind.dataValues;
-            const dietsName = diets.map((d) => d.name)
-            const dbObject = {
-                name,
-                image,
-                score,
-                healthScore,
-                dietsName,
-                resume,
-                instructions,
-            }
-            res.json({ recipe: dbObject })
-            return
-        } else {
-            res.status(404).json({ messageError: "Id inexistente" })
-            return
-        }
+      const dbFind = await Recipe.findOne({
+        where: { id: idReceta },
+        include: { all: true },
+      });
+      if (dbFind) {
+        const { name, resume, score, healthScore, instructions, image, diets, id } =
+          dbFind.dataValues;
+        const dietsName = diets.map((d) => d.name);
+        const dbObject = {
+          id,
+          name,
+          image,
+          score,
+          healthScore,
+          diets: dietsName,
+          resume: resume?.toString() || "",
+          instructions,
+        };
+        res.json({ recipe: dbObject });
+        return;
+      } else {
+        res.status(404).json({ messageError: "Id inexistente" });
+        return;
+      }
     } else {
       const apiResponse = await axios.get(
         `https://api.spoonacular.com/recipes/${idReceta}/information?apiKey=${API_KEY}`
       );
       if (apiResponse.data) {
-        const instructions = changeData(apiResponse.data);
         const {
+          id,
           image,
           title,
           dishTypes,
           diets,
+          analyzedInstructions,
           summary,
           spoonacularScore,
           healthScore,
         } = apiResponse.data;
-        
-          const recipeDetail = {
+        const instructions = changeData(analyzedInstructions);
+        const recipeDetail = {
+          id,
           name: title,
           image,
           dishTypes,
           diets,
           score: spoonacularScore,
           healthScore,
-          resume: summary,
+          resume: summary?.toString() || "",
           instructions,
         };
         res.json({ recipe: recipeDetail });
@@ -213,13 +232,12 @@ router.post("/recipe", async (req, res) => {
 
 //* ------------------------------------ OBTENCION DE TYPES ------------------------------------
 
-router.get("/types", async (_req, res) => {
+router.get("/types", async (req, res) => {
   try {
     const dietTypes = await Diet.findAll();
     let diets = [];
     if (dietTypes.length === 10) {
       diets = [...dietTypes];
-      return;
     } else {
       const newDiets = [
         "Gluten Free",
