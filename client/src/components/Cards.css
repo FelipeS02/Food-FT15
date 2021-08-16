@@ -1,0 +1,6 @@
+.cardsRender {
+    display: flex;
+    flex-wrap: wrap;
+    margin: -20px 15% 0 15%;
+    justify-content: center;
+}

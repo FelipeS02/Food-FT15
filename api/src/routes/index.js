@@ -1,7 +1,4 @@
 const { Router } = require("express");
-// Importar todos los routers;
-// Ejemplo: const authRouter = require('./auth.js');
-
 const router = Router();
 const { Diet, Recipe } = require("../db");
 const axios = require("axios");
@@ -9,18 +6,15 @@ const { API_KEY } = process.env;
 const { validate } = require("uuid");
 const { Op } = require("sequelize");
 
-// Configurar los routers
-// Ejemplo: router.use('/auth', authRouter);
-
 //* ------------------------------------ RECIPES / RECIPES POR NAME ------------------------------------
 
 router.get("/recipes", async (req, res) => {
   try {
     const apiResponse = await axios.get(
-      `https://api.spoonacular.com/recipes/complexSearch?apiKey=${API_KEY}&addRecipeInformation=true&number=10`
+      `https://api.spoonacular.com/recipes/complexSearch?apiKey=${API_KEY}&addRecipeInformation=true&number=100`
     );
     if (!req.query.name) {
-      const dbRecipes = await Recipe.findAll({include: { all: true }});
+      const dbRecipes = await Recipe.findAll({ include: { all: true } });
       const apiExtractedInfo = apiResponse?.data?.results?.length
         ? apiResponse.data.results.map((r) => {
             const { title, image, diets, dishTypes, id, spoonacularScore } = r;
@@ -36,14 +30,15 @@ router.get("/recipes", async (req, res) => {
         : [];
       const dbExtractedInfo = dbRecipes.length
         ? dbRecipes.map((r) => {
-            const { name, image, id, score, diets } = r;
-            const arrayDiets = diets.map((e) => e.name)
+            const { name, image, id, score, diets, createdInDB } = r;
+            const arrayDiets = diets.map((e) => e.name);
             return {
               id,
               name,
               score,
               diets: arrayDiets,
               image,
+              createdInDB,
             };
           })
         : [];
@@ -70,21 +65,26 @@ router.get("/recipes", async (req, res) => {
             })
         : [];
       const dbDietsByName = await Diet.findAll({
-        include: [{
-          where: { name: { [Op.iLike]: "%" + name + "%" } },
-          model: Recipe,
-        }]
+        include: [
+          {
+            where: { name: { [Op.iLike]: "%" + name + "%" } },
+            model: Recipe,
+          },
+        ],
       });
-      const diets = dbDietsByName.map((d) => d.name)
-      const dbRecipesByName = await Recipe.findAll({ where: { name: { [Op.iLike]: "%" + name + "%" } } })
+      const diets = dbDietsByName.map((d) => d.name);
+      const dbRecipesByName = await Recipe.findAll({
+        where: { name: { [Op.iLike]: "%" + name + "%" } },
+      });
       const dbExtractByName = dbRecipesByName.length
         ? dbRecipesByName.map((e) => {
-            const { name, image, id } = e;
+            const { name, image, id, createdInDB } = e;
             return {
               id,
               name,
               diets,
               image,
+              createdInDB,
             };
           })
         : [];
@@ -106,28 +106,35 @@ router.get("/recipes", async (req, res) => {
 
 //* ------------------------------------ RECIPES POR ID ------------------------------------
 
-const setDiets = async (diets, recipe) => {
-  try {
-    const recipeDiets = diets.map(async (d) => {
-      const currentDiet = await Diet.findOne({ where: { name: d } });
-      currentDiet && (await recipe.addDiet(currentDiet));
-    });
-    await Promise.all(recipeDiets);
-  } catch (err) {
-    console.log(err);
-  }
-};
-
 const changeData = (data) => {
   let steps = [];
   if (data[0].steps.length > 0) {
     data[0].steps.forEach(({ number, step }) => {
-      steps.push ({[number]: step.toString()});
+      steps.push({ [number]: step.toString() });
     });
   } else {
     steps = [{ noInstructions: "No existen instrucciones para esta receta" }];
   }
   return steps;
+};
+
+const changeDbData = (data) => {
+  let instructions = [];
+  if (data !== "") {
+    instructions = data
+      .split("-")
+      .map((e, index) => {
+        if (e !== "") {
+          return { [index]: e };
+        }
+      })
+      .filter(Boolean);
+  } else {
+    instructions = [
+      { noInstructions: "No existen instrucciones para esta receta" },
+    ];
+  }
+  return instructions;
 };
 
 router.get("/recipes/:idReceta", async (req, res) => {
@@ -139,8 +146,17 @@ router.get("/recipes/:idReceta", async (req, res) => {
         include: { all: true },
       });
       if (dbFind) {
-        const { name, resume, score, healthScore, instructions, image, diets, id } =
-          dbFind.dataValues;
+        const {
+          name,
+          resume,
+          score,
+          healthScore,
+          instructions,
+          image,
+          diets,
+          id,
+          createdInDB,
+        } = dbFind.dataValues;
         const dietsName = diets.map((d) => d.name);
         const dbObject = {
           id,
@@ -150,9 +166,10 @@ router.get("/recipes/:idReceta", async (req, res) => {
           healthScore,
           diets: dietsName,
           resume: resume?.toString() || "",
-          instructions,
+          instructions: changeDbData(instructions),
+          createdInDB,
         };
-        res.json({ recipe: dbObject });
+        res.status(200).json({ recipe: dbObject });
         return;
       } else {
         res.status(404).json({ messageError: "Id inexistente" });
@@ -186,7 +203,7 @@ router.get("/recipes/:idReceta", async (req, res) => {
           resume: summary?.toString() || "",
           instructions,
         };
-        res.json({ recipe: recipeDetail });
+        res.status(200).json({ recipe: recipeDetail });
         return;
       } else {
         res.json({ messageError: "Id Inexistente" });
@@ -201,10 +218,22 @@ router.get("/recipes/:idReceta", async (req, res) => {
 
 //* ------------------------------------ CREACION DE RECIPE ------------------------------------
 
+const setDiets = async (diets, recipe) => {
+  try {
+    const recipeDiets = diets.map(async (d) => {
+      const currentDiet = await Diet.findOne({ where: { name: d } });
+      currentDiet && (await recipe.addDiet(currentDiet));
+    });
+    await Promise.all(recipeDiets);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 router.post("/recipe", async (req, res) => {
   try {
     const { name, resume, score, healthScore, instructions, diet, image } =
-      req.body;
+      req.body.data;
     if (name && resume && diet) {
       const newRecipe = await Recipe.create({
         name,
@@ -215,7 +244,7 @@ router.post("/recipe", async (req, res) => {
         image,
       });
       await setDiets(diet, newRecipe);
-      res.json(req.body);
+      res.status(200).json(req.body.data);
       return;
     } else {
       res.status(400).json({
@@ -224,6 +253,20 @@ router.post("/recipe", async (req, res) => {
       });
       return;
     }
+  } catch (err) {
+    const { message } = err;
+    res.status(400).json({ message });
+  }
+});
+
+router.get("/delete/:idReceta", async (req, res) => {
+  try {
+    await Recipe.destroy({
+      where: {
+        id: req.params.idReceta,
+      },
+    });
+    res.status(200).json({confirmed: "Receta borrada correctamente"})
   } catch (err) {
     const { message } = err;
     res.status(400).json({ message });

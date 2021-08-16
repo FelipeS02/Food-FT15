@@ -1,0 +1,101 @@
+.formContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  background-color: rgb(0 0 0 / 65%);
+  margin: 10px 0px 0px 17%;
+  padding: 100px 100px 30px 100px;
+  position: fixed;
+  border-style: solid;
+  border-color: #c69c6d;
+}
+
+.createTitle {
+  position: fixed;
+  display: flex;
+  margin-top: -7%;
+}
+
+.backButton {
+  display: flex;
+  flex-direction: row;
+  color: #c69c6d;
+  padding: 10px;
+  font-size: 20px;
+  text-decoration: none;
+  background-color: rgb(0, 0, 0);
+}
+
+.createTitle #title {
+  font-size: 50px;
+  color: #c69c6d;
+}
+
+.inputNames {
+  color: #c69c6d;
+}
+
+.foodImage {
+  max-height: 600px;
+  max-width: 600px;
+  margin-top: 19px;
+  border-style: double;
+  border-color: #c69c6d;
+  object-fit: cover;
+}
+
+.form {
+  margin: -18px -30px -20px 0px;
+  justify-content: center;
+}
+.error {
+  font-size: 15px;
+  color: red;
+}
+
+.formContainer button {
+  background-color: #c69c6d;
+  color: white;
+  font-family: "Playfair Display", serif;
+  font-size: 20px;
+  border-color: rgba(0, 0, 0, 0.281);
+  padding: 10px;
+  border-radius: 3px;
+}
+
+.toolTip {
+  color: gray;
+  font-size: 20px !important;
+}
+
+.dietsChecks {
+  display: inline;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.inputText {
+  width: 400px;
+  height: 20px;
+  background-color: black;
+  border-color: #ffffff;
+  border-radius: 4px;
+  color: whitesmoke;
+  font-family: "Playfair Display", serif;
+}
+
+textarea {
+  width: 400px;
+  height: 100px;
+  resize: none;
+  color: whitesmoke;
+  background-color: black;
+  border-color: #ffffff;
+  border-radius: 4px;
+  font-family: "Playfair Display", serif;
+}
+
+.formContainer button:hover {
+  color: black;
+  background-color: #c08c4f;
+}

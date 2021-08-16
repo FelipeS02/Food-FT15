@@ -30,30 +30,14 @@ body {
 .navbar {
     display: flex;
     flex-direction: row;
-    background-color: rgb(3, 3, 3);
+    background-color: black;
 }
-
-
-.navbar .link{
-    color: #f2f2f2;
-    text-align: center;
-    padding: 0px 16px;
-    color: whitesmoke;
-    font-size: 20px;
-}
-
-
-.navbar .link:hover {
-    color: #C69C6D;
-    background-color: rgba(255, 255, 255, 0.055);
-}
-
 
 .presentation p {
     font-size: 20px;
 }
 
-button {
+.presentation button {
     background-color: #C69C6D;
     color: white;
     font-family: 'Playfair Display', serif;
@@ -63,9 +47,10 @@ button {
     border-radius: 3px;
 }
 
-button:hover {
+.presentation button:hover {
     color: black;
     background-color: #c08c4f;
+    cursor: pointer;
 }
 
 .logo {
@@ -77,13 +62,20 @@ button:hover {
     font-size: 35px;
 }
 
-#henryButton {
+.infoButton {
     float: right;
     position: relative;
-    height: 30px;
-    padding: 20px 10px 16px 15px;
+    padding: 
+    1px 10px 0px 10px;
+    background-color: transparent;
+    border-color: transparent;
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: white;
 }
 
-#henryButton:hover {
+.infoButton:hover {
     background-color: rgba(255, 255, 255, 0.055);
+    color: #c08c4f;
+    cursor: pointer;
 }

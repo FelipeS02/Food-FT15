@@ -1,3 +1,56 @@
-.card {
-    background-color: black;
+.cardStyle {
+  border: 3px solid #c69c6d;
+  background-color: rgb(0 0 0 / 65%);
+  display: flex;
+  flex-direction: column;
+  height: 350px;
+  width: 312px;
+  border-radius: 8px;
+  text-align: center;
+  margin: 30px;
 }
+
+.cardStyle a:-webkit-any-link {
+  color: #c69c6d;
+  text-decoration: none;
+  font-size: 20px;
+}
+
+.cardStyle img {
+  border-radius: 6px;
+  max-height: 400px;
+  max-width: 100%;
+  object-fit: cover;
+}
+
+.cardStyle select {
+  height: 30px;
+  font-size: 15px;
+  background-color: rgb(0 0 0 / 65%);
+  color: #c69c6d;
+  border-color: black;
+  padding: 0 8px 0 0;
+  margin-top: 10px;
+  font-family: "Playfair Display", serif;
+}
+
+.cardStyle option:disabled {
+  background-color: black;
+  border-color: black;
+}
+
+.deleteButton {
+  position: absolute;
+}
+.deleteButton button {
+  background-color: transparent;
+  border-color: transparent;
+  border-radius: 100%;
+  padding: 1px 2px 0px 2px;
+}
+.deleteButton button:hover {
+  color: rgb(214, 4, 4);
+  cursor: pointer;
+}
+
+

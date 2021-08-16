@@ -1,9 +1,10 @@
 import {
   GET_DIETS,
   GET_RECIPES,
-  RECIPES_BY_NAME,
+  SEARCH_BY_NAME,
   RECIPE_DETAIL,
   SORT,
+  DELETE_RECIPE,
 } from "../actions/actions";
 
 const initialState = {
@@ -21,17 +22,27 @@ function rootReducer(state = initialState, action) {
         allRecipes: action.payload,
         recipes: action.payload,
       };
+
     case GET_DIETS:
       return {
         ...state,
         allDiets: action.payload,
       };
-    case RECIPES_BY_NAME: {
+
+    case SEARCH_BY_NAME:
       return {
         ...state,
         recipes: action.payload,
       };
-    }
+
+    case DELETE_RECIPE:
+      const actualizedRecipes = [...state.recipes].filter(
+        (e) => e.id !== action.payload
+      );
+      return {
+        ...state,
+        recipes: [...actualizedRecipes],
+      };
     case SORT: {
       let sortRecipe = [];
       if (action.payload.includes("alfabetical")) {
@@ -49,7 +60,8 @@ function rootReducer(state = initialState, action) {
         } else {
           sortRecipe = sortedAlfabetical.reverse();
         }
-      } else {
+      }
+      if (action.payload.includes("score")) {
         let sortedByScore = state.recipes.sort((a, b) => {
           if (a.score > b.score) {
             return 1;
@@ -65,17 +77,26 @@ function rootReducer(state = initialState, action) {
           sortRecipe = sortedByScore.reverse();
         }
       }
+      if (action.payload === "all") {
+        sortRecipe = [...state.allRecipes]
+      }
+      if (state.allDiets.some((e) => e.name === action.payload)) {
+        sortRecipe = [...state.allRecipes].filter((e) =>
+          e.diets.includes(action.payload.toLowerCase())
+        );
+      }
       return {
         ...state,
-        recipes: sortRecipe,
+        recipes: [...sortRecipe],
       };
     }
-    case RECIPE_DETAIL: {
+
+    case RECIPE_DETAIL:
       return {
         ...state,
         recipeDetail: action.payload,
       };
-    }
+
     default:
       return {
         ...state,

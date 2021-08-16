@@ -2,33 +2,66 @@ import axios from "axios";
 import {
   GET_RECIPES,
   GET_DIETS,
-  RECIPES_BY_NAME,
+  SEARCH_BY_NAME,
   RECIPE_DETAIL,
   SORT,
+  DELETE_RECIPE,
 } from "./actions";
 
 export const getRecipes = () => async (dispatch) => {
-  const json = await axios.get("http://localhost:3001/recipes");
-  dispatch({
-    type: GET_RECIPES,
-    payload: json.data.recipes,
-  });
+  try {
+    const json = await axios.get("http://localhost:3001/recipes");
+    dispatch({
+      type: GET_RECIPES,
+      payload: json.data.recipes,
+    });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const createRecipe = async (data) => {
+  try {
+    await axios.post("http://localhost:3001/recipe", { data } );
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const deleteRecipe = (data) => async (dispatch) => {
+  try {
+    await axios.get("http://localhost:3001/delete/" + data );
+    dispatch({
+      type: DELETE_RECIPE,
+      payload: data
+    })
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 export const recipeDetail = (id) => async (dispatch) => {
-  const json = await axios.get("http://localhost:3001/recipes/" + id);
-  dispatch({
-    type: RECIPE_DETAIL,
-    payload: json.data.recipe,
-  });
+  try {
+    const json = await axios.get("http://localhost:3001/recipes/" + id);
+    dispatch({
+      type: RECIPE_DETAIL,
+      payload: json.data.recipe,
+    });
+  } catch (err) {
+    console.log(err);
+  }
 };
 
-export const dietsByName = (name) => async (dispatch) => {
-  const json = await axios.get("http://localhost:3001/recipes?name=" + name);
-  dispatch({
-    type: RECIPES_BY_NAME,
-    payload: json.data.recipes,
-  });
+export const searchByName = (value) => async (dispatch) => {
+  try {
+    const json = await axios.get("http://localhost:3001/recipes?name=" + value);
+    return dispatch({
+      type: SEARCH_BY_NAME,
+      payload: json.data.recipes,
+    });
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 export const sortRecipes = (value) => (dispatch) => {
@@ -39,12 +72,14 @@ export const sortRecipes = (value) => (dispatch) => {
 };
 
 
-export const getDiets = () => {
-  return async (dispatch) => {
+export const getDiets = () => async (dispatch) => {
+  try {
     const json = await axios.get("http://localhost:3001/types");
-    return dispatch({
+    dispatch({
       type: GET_DIETS,
       payload: json.data.diets,
     });
-  };
+  } catch (err) {
+    console.log(err);
+  }
 };
