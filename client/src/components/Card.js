@@ -39,7 +39,7 @@ const Card = ({ name, img, diets, id, createdInDB }) => {
         <Link to={`/detail/${id}`}>{name}</Link>
       </div>
       <div>
-        <select name="Tipo de dieta" defaultValue="">
+        <select className="cardDiets" name="Tipo de dieta" defaultValue="">
           <option value="" disabled hidden>
             Dietas
           </option>
