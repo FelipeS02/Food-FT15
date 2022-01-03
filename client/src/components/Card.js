@@ -2,10 +2,13 @@ import React from "react";
 import { Link } from "react-router-dom";
 import "./Card.css";
 import DeleteForeverIcon from "@material-ui/icons/DeleteForever";
+import EditIcon from "@material-ui/icons/Edit";
+import Score from "./Score";
 import { deleteRecipe } from "../actions";
 import swal from "sweetalert";
 import { useDispatch } from "react-redux";
-const Card = ({ name, img, diets, id, createdInDB }) => {
+
+const Card = ({ name, img, diets, id, createdInDB, score }) => {
   const dispatch = useDispatch();
   const handleClick = async () => {
     try {
@@ -38,7 +41,7 @@ const Card = ({ name, img, diets, id, createdInDB }) => {
       <div>
         <Link to={`/detail/${id}`}>{name}</Link>
       </div>
-      <div>
+      <div className="scoreAndDiets">
         <select className="cardDiets" name="Tipo de dieta" defaultValue="">
           <option value="" disabled hidden>
             Dietas
@@ -52,12 +55,20 @@ const Card = ({ name, img, diets, id, createdInDB }) => {
               </option>
             ))}
         </select>
+        <Score value={score}/>
       </div>
       <div className="deleteButton">
         {createdInDB && (
-          <button onClick={handleClick}>
-            <DeleteForeverIcon />
-          </button>
+          <div>
+            <button onClick={handleClick}>
+              <DeleteForeverIcon />
+            </button>
+            <Link to={`/edit/${id}`}>
+              <button className="editButton">
+                <EditIcon />
+              </button>
+            </Link>
+          </div>
         )}
       </div>
     </div>

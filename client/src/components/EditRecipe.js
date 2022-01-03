@@ -1,14 +1,21 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { createRecipe, getDiets } from "../actions";
+import { editRecipe, getDiets, recipeDetail } from "../actions";
 import { Link, useHistory } from "react-router-dom";
 import HelpOutlineIcon from "@material-ui/icons/HelpOutline";
 import swal from "sweetalert";
 import ArrowBackIosIcon from "@material-ui/icons/ArrowBackIos";
-import "./CreateRecipe.css";
+import SaveAltIcon from "@material-ui/icons/SaveAlt";
 
-const CreateRecipe = () => {
+const EditRecipe = ({ idReceta }) => {
+  const dispatch = useDispatch();
+
+  const allDiets = useSelector((state) => state.allDiets);
+
+  const currentRecipe = useSelector((state) => state.recipeDetail);
+  const { name, diets, score, healthScore, stringInstructions, resume, image } =
+    currentRecipe;
+
   const [recipe, setRecipe] = useState({
     name: "",
     diets: [],
@@ -16,19 +23,28 @@ const CreateRecipe = () => {
     healthScore: 0,
     instructions: "",
     resume: "",
-    image: "https://i.postimg.cc/T1y6kdbQ/no-img.png",
+    image: "",
   });
 
-  console.log(recipe.diets)
-  const history = useHistory();
-  const allDiets = useSelector((state) => state.allDiets);
-  const dispatch = useDispatch();
+  const chargeData = async () => {
+    await setRecipe({
+      name,
+      diets,
+      score,
+      healthScore,
+      instructions: stringInstructions,
+      resume,
+      image,
+    });
+  };
 
   useEffect(() => {
+    dispatch(recipeDetail(idReceta));
     dispatch(getDiets());
-  }, [dispatch]);
+  }, [dispatch, idReceta]);
 
   //* ------------------------------------ MANTENCION DE FORM ------------------------------------
+  const history = useHistory();
   let imgError;
   let errors = {};
   (() => {
@@ -38,7 +54,7 @@ const CreateRecipe = () => {
     if (recipe.image === "https://i.postimg.cc/T1y6kdbQ/no-img.png") {
       imgError = " Este campo debe contener una URL valida";
     }
-    if (recipe.diets.length === 0) {
+    if (recipe.diets?.length === 0) {
       errors["diets"] = " Debe elegir al menos una dieta";
     }
     if (recipe.resume === "") {
@@ -61,6 +77,14 @@ const CreateRecipe = () => {
     }
   };
 
+  const validateCheck = (diet, dietsArray) => {
+    if (dietsArray.includes(diet)) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
   const alert = async () => {
     try {
       if (
@@ -71,22 +95,17 @@ const CreateRecipe = () => {
         errors.resume
       ) {
         await swal({
-          title: "Error al crear la receta",
+          title: "Error al modificar la receta",
           text: "Asegurate que todos los campos esten correctos",
           icon: "error",
         });
       } else {
         const message = await swal({
-          title: "Receta creada correctamente!",
-          text: "Ahora podras verla en el menu principal",
+          title: "Receta modificada correctamente!",
+          text: "Los cambios se reflejaran en la pantalla principal",
           icon: "success",
-          buttons: ["Seguir creando", "Pagina principal"],
         });
-        if (message) {
-          history.push("/home");
-        } else {
-          history.go(0);
-        }
+        message && history.push("/home");
       }
     } catch (err) {
       console.log(err);
@@ -96,14 +115,14 @@ const CreateRecipe = () => {
   const handleSubmit = () => {
     if (
       errors.name ||
-      errors.diet ||
+      errors.diets ||
       errors.score ||
       errors.healthScore ||
       errors.resume
     ) {
       alert();
     } else {
-      createRecipe(recipe);
+      editRecipe(idReceta, recipe);
       alert();
     }
   };
@@ -127,6 +146,7 @@ const CreateRecipe = () => {
     ); // fragment locator
     return !!pattern.test(str);
   };
+
   (() => {
     if (recipe.image === "") {
       setRecipe({
@@ -136,6 +156,31 @@ const CreateRecipe = () => {
     }
   })();
 
+  // const arrayFormatter = (array) => {
+  //   if (array) {
+  //     let newString = "";
+  //     for (let i = 0; i < array.length; i++) {
+  //       if (i === 0) {
+  //         newString =
+  //           newString +
+  //           " | " +
+  //           array[i].replace(/\w\S*/g, (w) =>
+  //             w.replace(/^\w/, (c) => c.toUpperCase())
+  //           ) +
+  //           " | ";
+  //       } else {
+  //         newString =
+  //           newString +
+  //           array[i].replace(/\w\S*/g, (w) =>
+  //             w.replace(/^\w/, (c) => c.toUpperCase())
+  //           ) +
+  //           " | ";
+  //       }
+  //     }
+  //     return newString;
+  //   }
+  // };
+
   const handleImageChange = (e) => {
     if (validURL(e.target.value) || e.target.value === "") {
       setRecipe({
@@ -144,7 +189,6 @@ const CreateRecipe = () => {
       });
     }
   };
-
   return (
     <div>
       <Link to="/home" className="backButton">
@@ -152,7 +196,8 @@ const CreateRecipe = () => {
       </Link>
       <div className="formContainer">
         <div className="createTitle">
-          <p id="title">Crea tu receta</p>
+          <p id="title">Modificar</p>
+          <button onClick={chargeData} className="chargeData" title="Cargar Datos"> <SaveAltIcon fontSize="large"/></button>
         </div>
         <img
           src={
@@ -174,8 +219,10 @@ const CreateRecipe = () => {
               type="text"
               id="name"
               name="name"
+              value={recipe.name}
               onChange={handleChange}
             />
+            <label className="currentData"> ({name})</label>
             {errors.name && <div className="error">{errors.name}</div>}
           </div>
           <div style={{ margin: "12px" }}>
@@ -186,6 +233,7 @@ const CreateRecipe = () => {
               id="resume"
               name="resume"
               type="textarea"
+              value={recipe.resume}
               onChange={handleChange}
               className="inputText"
             />
@@ -203,6 +251,7 @@ const CreateRecipe = () => {
               onChange={handleChange}
             />
             <label> {recipe.score}</label>
+            <label className="currentData"> ({score})</label>
           </div>
 
           <div style={{ margin: "12px" }}>
@@ -217,10 +266,14 @@ const CreateRecipe = () => {
               onChange={handleChange}
             />
             <label> {recipe.healthScore}</label>
+            <label className="currentData"> ({healthScore})</label>
           </div>
 
           <div style={{ margin: "12px" }}>
-            <div className="inputNames">Dietas: </div>
+            <div className="inputNames">
+              Dietas:{" "}
+              {/* <label className="currentData">({arrayFormatter(diets)})</label> */}
+            </div>
             <div className="dietsChecks">
               {allDiets &&
                 allDiets?.map((e) => (
@@ -230,14 +283,13 @@ const CreateRecipe = () => {
                       value={e.name}
                       onClick={handleClick}
                       className="checks"
+                      checked={validateCheck(e.name, recipe.diets)}
                     />
-                    <label style={{ color: "#d7d7d7" }}>
-                      {e.name}
-                    </label>
+                    <label style={{ color: "#d7d7d7" }}>{e.name}</label>
                   </div>
                 ))}
             </div>
-            {errors.diets && <div className="error">{errors.diets}</div>}
+            {errors.diet && <div className="error">{errors.diet}</div>}
           </div>
 
           <div style={{ margin: "12px" }}>
@@ -250,7 +302,9 @@ const CreateRecipe = () => {
               type="text"
               onChange={handleImageChange}
               className="inputText"
-            />
+            />{" "}
+            <br />
+            <label className="currentData"> ({image})</label>
             {imgError && <div className="error">{imgError}</div>}
           </div>
 
@@ -264,6 +318,7 @@ const CreateRecipe = () => {
             <textarea
               id="instructions"
               name="instructions"
+              value={recipe.instructions}
               onChange={handleChange}
             />
           </div>
@@ -272,7 +327,7 @@ const CreateRecipe = () => {
             onClick={handleSubmit}
             style={{ margin: "12px" }}
           >
-            Crear
+            Guardar Cambios
           </button>
         </div>
       </div>
@@ -280,4 +335,4 @@ const CreateRecipe = () => {
   );
 };
 
-export default CreateRecipe;
+export default EditRecipe;

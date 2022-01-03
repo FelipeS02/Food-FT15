@@ -11,16 +11,25 @@ const { Op } = require("sequelize");
 router.get("/recipes", async (req, res) => {
   try {
     const apiResponse = await axios.get(
-      `https://api.spoonacular.com/recipes/complexSearch?apiKey=${API_KEY}&addRecipeInformation=true&number=100`
+      `https://api.spoonacular.com/recipes/complexSearch?apiKey=${API_KEY}&addRecipeInformation=true&number=10`
     );
     if (!req.query.name) {
       const dbRecipes = await Recipe.findAll({ include: { all: true } });
       const apiExtractedInfo = apiResponse?.data?.results?.length
         ? apiResponse.data.results.map((r) => {
-            const { title, image, diets, dishTypes, id, spoonacularScore } = r;
+            const {
+              title,
+              image,
+              diets,
+              dishTypes,
+              id,
+              spoonacularScore,
+              healthScore,
+            } = r;
             return {
               id,
               name: title,
+              healthScore,
               score: spoonacularScore,
               diets,
               dishTypes,
@@ -30,11 +39,13 @@ router.get("/recipes", async (req, res) => {
         : [];
       const dbExtractedInfo = dbRecipes.length
         ? dbRecipes.map((r) => {
-            const { name, image, id, score, diets, createdInDB } = r;
-            const arrayDiets = diets.map((e) => e.name);
+            const { name, image, id, score, diets, createdInDB, healthScore } =
+              r;
+            const arrayDiets = diets.map((e) => e.name.toLowerCase());
             return {
               id,
               name,
+              healthScore,
               score,
               diets: arrayDiets,
               image,
@@ -166,10 +177,12 @@ router.get("/recipes/:idReceta", async (req, res) => {
           healthScore,
           diets: dietsName,
           resume: resume?.toString() || "",
+          stringInstructions: instructions,
           instructions: changeDbData(instructions),
           createdInDB,
         };
-        res.status(200).json({ recipe: dbObject });
+        // res.status(200).json({ recipe: dbObject });
+        res.status(200).json({ recipe: dbFind });
         return;
       } else {
         res.status(404).json({ messageError: "Id inexistente" });
@@ -232,9 +245,9 @@ const setDiets = async (diets, recipe) => {
 
 router.post("/recipe", async (req, res) => {
   try {
-    const { name, resume, score, healthScore, instructions, diet, image } =
+    const { name, resume, score, healthScore, instructions, diets, image } =
       req.body.data;
-    if (name && resume && diet) {
+    if (name && resume && diets) {
       const newRecipe = await Recipe.create({
         name,
         resume,
@@ -243,7 +256,7 @@ router.post("/recipe", async (req, res) => {
         instructions,
         image,
       });
-      await setDiets(diet, newRecipe);
+      await setDiets(diets, newRecipe);
       res.status(200).json(req.body.data);
       return;
     } else {
@@ -261,18 +274,37 @@ router.post("/recipe", async (req, res) => {
 
 router.get("/delete/:idReceta", async (req, res) => {
   try {
-    await Recipe.destroy({
+    const response = await Recipe.destroy({
       where: {
         id: req.params.idReceta,
       },
     });
-    res.status(200).json({confirmed: "Receta borrada correctamente"})
+    res
+      .status(200)
+      .json({ confirmed: "Receta borrada correctamente", data: response });
   } catch (err) {
     const { message } = err;
     res.status(400).json({ message });
   }
 });
 
+//* ------------------------------------ EDICION DE RECIPE ------------------------------------
+router.put("/edit/:idReceta", async (req, res) => {
+  try {
+    const { idReceta } = req.params;
+    const { diets } = req.body.data;
+    const currentRecipe = await Recipe.findByPk(idReceta);
+    await setDiets(diets, currentRecipe);
+    const response = await Recipe.update(req.body.data, {
+      where: { id: idReceta },
+    });
+    console.log(response);
+    res.status(200).json({ response });
+  } catch (err) {
+    const { message } = err;
+    res.status(400).json({ message });
+  }
+});
 //* ------------------------------------ OBTENCION DE TYPES ------------------------------------
 
 router.get("/types", async (req, res) => {

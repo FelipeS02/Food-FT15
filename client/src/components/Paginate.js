@@ -24,7 +24,7 @@ const Paginate = ({ recipesPerPage, recipes, paginate, current }) => {
         </button>
         {pageNumbers &&
           pageNumbers.map((e) => (
-            <button key={e} onClick={() => paginate(e)}>
+            <button key={e} onClick={() => paginate(e)} className={e === current ? "selected" : "nonSelected"}>
               {e}
             </button>
           ))}

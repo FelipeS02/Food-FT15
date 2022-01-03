@@ -22,7 +22,7 @@ export const getRecipes = () => async (dispatch) => {
 
 export const createRecipe = async (data) => {
   try {
-    await axios.post("http://localhost:3001/recipe", { data } );
+    await axios.post("http://localhost:3001/recipe", { data });
   } catch (err) {
     console.log(err);
   }
@@ -30,11 +30,19 @@ export const createRecipe = async (data) => {
 
 export const deleteRecipe = (data) => async (dispatch) => {
   try {
-    await axios.get("http://localhost:3001/delete/" + data );
+    await axios.get("http://localhost:3001/delete/" + data);
     dispatch({
       type: DELETE_RECIPE,
-      payload: data
-    })
+      payload: data,
+    });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const editRecipe = async (id, data) => {
+  try {
+    await axios.put("http://localhost:3001/edit/" + id, { data });
   } catch (err) {
     console.log(err);
   }
@@ -70,7 +78,6 @@ export const sortRecipes = (value) => (dispatch) => {
     payload: value,
   });
 };
-
 
 export const getDiets = () => async (dispatch) => {
   try {

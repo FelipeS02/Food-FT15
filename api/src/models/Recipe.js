@@ -23,14 +23,17 @@ module.exports = (sequelize) => {
       score: {
         type: DataTypes.INTEGER,
         allowNull: true,
+        defaultValue: 0,
       },
       healthScore: {
         type: DataTypes.INTEGER,
         allowNull: true,
+        defaultValue: 0,
       },
       instructions: {
         type: DataTypes.TEXT,
         allowNull: true,
+        defaultValue: "",
       },
       image: {
         type: DataTypes.TEXT,

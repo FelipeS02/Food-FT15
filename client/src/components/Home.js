@@ -11,7 +11,6 @@ const Home = () => {
   const dispatch = useDispatch();
   const diets = useSelector((state) => state.allDiets);
   const recipes = useSelector((state) => state.recipes);
-
   useEffect(() => {
     dispatch(getRecipes());
     dispatch(getDiets());
@@ -35,13 +34,13 @@ const Home = () => {
         />
       </Link>
       <Nav diets={diets} setCurrentPage={setCurrentPage} />
+      <Cards recipes={currentRecipes} />
       <Paginate
         recipesPerPage={recipesPerPage}
         recipes={recipes.length}
         paginate={setCurrentPage}
         current={currentPage}
       />
-      <Cards recipes={currentRecipes} />
     </div>
   );
 };

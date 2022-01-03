@@ -78,7 +78,7 @@ function rootReducer(state = initialState, action) {
         }
       }
       if (action.payload === "all") {
-        sortRecipe = [...state.allRecipes]
+        sortRecipe = [...state.allRecipes];
       }
       if (state.allDiets.some((e) => e.name === action.payload)) {
         sortRecipe = [...state.allRecipes].filter((e) =>

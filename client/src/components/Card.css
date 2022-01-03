@@ -28,8 +28,10 @@
   font-size: 15px;
   background-color: rgb(0 0 0 / 65%);
   color: #c69c6d;
+  display: block;
+  margin: auto;
   border-color: black;
-  padding: 0 8px 0 0;
+  padding: 0 10px 0 0;
   margin-top: 10px;
   font-family: "Playfair Display", serif;
 }
@@ -53,4 +55,11 @@
   cursor: pointer;
 }
 
+.editButton:hover {
+  color: #c69c6d !important;
+}
 
+.scoreAndDiets {
+  display: flex;
+  flex-direction: row;
+}

@@ -1,19 +1,24 @@
 .paginate button {
-    background-color: rgba(0, 0, 0, 0);
-    color: #c08c4f;
-    font-size: 31px;
-    border-color: rgba(0, 0, 0, 0);
-    font-family: "Playfair Display", serif;
+  background-color: rgba(0, 0, 0, 0);
+  color: #c08c4f;
+  font-size: 31px;
+  border-color: rgba(0, 0, 0, 0);
 }
 
 .paginate button:hover {
-    background-color: rgba(255, 255, 255, 0.055);
-    cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.055);
+  cursor: pointer;
+}
+
+.selected {
+  border-bottom: 2px solid rgb(97, 97, 97) !important;
+  border-radius: 0 0 5px 5px;
+  background-color: rgba(255, 255, 255, 0.055) !important;
 }
 
 .paginate {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
-    font-family: 'Playfair Display', serif;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+  font-family: "Playfair Display", serif;
 }

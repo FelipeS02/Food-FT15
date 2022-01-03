@@ -23,7 +23,7 @@ const Nav = ({ diets, setCurrentPage }) => {
 
   const handleClick = (e) => {
     e.preventDefault();
-    setName("")
+    setName("");
     dispatch(searchByName(name));
     setCurrentPage(1);
   };
@@ -42,15 +42,23 @@ const Nav = ({ diets, setCurrentPage }) => {
             </option>
           ))}
         </select>
-        <select name="sort" onChange={handleOption} defaultValue="">
-          <option value="" disabled hidden>
-            ORDENAR POR:
-          </option>
-          <option value="alfabeticalASC">Abc▲</option>
-          <option value="alfabeticalDESC">abC▼</option>
+        <select
+          name="alfabeticalSort"
+          onChange={handleOption}
+          defaultValue="alfabeticalASC"
+        >
+          <option value="alfabeticalASC">A-Z▲</option>
+          <option value="alfabeticalDESC">Z-A▼</option>
+        </select>
+        <select
+          name="scoreSort"
+          onChange={handleOption}
+          defaultValue="scoreASC"
+        >
           <option value="scoreASC">★★★▲</option>
           <option value="scoreDESC">★★★▼</option>
         </select>
+
         <div className="searchBar">
           <Link to="/create" style={{ padding: "0px 10px 0px 10px" }}>
             <button>
